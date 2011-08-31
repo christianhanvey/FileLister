@@ -115,8 +115,27 @@ if (!is_dir($curPath) && is_file($curPath)) {
 
 
     $filelister->loadHeaders($curPath);
-    $o = file_get_contents($curPath);
-    echo $o;
+
+    // If it's a large file we don't want the script to timeout, so:
+    set_time_limit(300);
+    // If it's a large file, readfile might not be able to do it in one go, so:
+    $abspath = $modx->config['base_path'].$curPath;
+    $chunksize = 1 * (1024 * 1024); // how many bytes per chunk
+    $size = intval(sprintf("%u", filesize($abspath))); 
+    if ($size > $chunksize) {
+        $handle = fopen($abspath, 'rb');
+        $buffer = '';
+        while (!feof($handle)) {
+            $buffer = fread($handle, $chunksize);
+            echo $buffer;
+            ob_flush();
+            flush();
+        }
+        fclose($handle);
+    } else {
+        readfile($abspath);
+    } 
+
     die();
 } elseif (!is_dir($curPath)) {
     /* if an invalid path, set to base */
