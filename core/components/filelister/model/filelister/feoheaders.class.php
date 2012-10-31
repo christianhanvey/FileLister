@@ -118,6 +118,7 @@ class feoHeaders {
         'movie' => 'video/x-sgi-movie',
         'mp2' => 'video/mpeg',
         'mp3' => 'audio/mpeg',
+        'mp4' => 'video/mp4',
         'mpa' => 'video/mpeg',
         'mpe' => 'video/mpeg',
         'mpeg' => 'video/mpeg',
@@ -235,14 +236,9 @@ class feoHeaders {
         if (isset($this->types[$extension])) {
             $mt = $this->types[$extension];
         }
-<<<<<<< HEAD
-        header('Content-type: '.$mt);
-    	header('Content-Length: ' . filesize($file));
-=======
         $fileSize = @filesize($file);
         if (!empty($mt)) header('Content-type: '.$mt);
         if (!empty($fileSize)) header('Content-Length: ' . $fileSize);
->>>>>>> splittingred/develop
         header('Content-Disposition: inline; filename="'.$filename.'"');
     }
 }

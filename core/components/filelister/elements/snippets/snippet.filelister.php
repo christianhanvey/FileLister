@@ -27,7 +27,7 @@
  * @var modX $modx
  * @var FileLister $fileLister
  * @var array $scriptProperties
- * 
+ *
  * @package filelister
  */
 $fileLister = $modx->getService('filelister','FileLister',$modx->getOption('filelister.core_path',null,$modx->getOption('core_path').'components/filelister/').'model/filelister/',$scriptProperties);
@@ -118,34 +118,8 @@ if (!is_dir($curPath) && is_file($curPath)) {
 
     }
 
-<<<<<<< HEAD
-
-    $filelister->loadHeaders($curPath);
-
-    // If it's a large file we don't want the script to timeout, so:
-    set_time_limit(300);
-    // If it's a large file, readfile might not be able to do it in one go, so:
-    $abspath = $modx->config['base_path'].$curPath;
-    $chunksize = 1 * (1024 * 1024); // how many bytes per chunk
-    $size = intval(sprintf("%u", filesize($abspath))); 
-    if ($size > $chunksize) {
-        $handle = fopen($abspath, 'rb');
-        $buffer = '';
-        while (!feof($handle)) {
-            $buffer = fread($handle, $chunksize);
-            echo $buffer;
-            ob_flush();
-            flush();
-        }
-        fclose($handle);
-    } else {
-        readfile($abspath);
-    } 
-
-=======
     $fileLister->loadHeaders($curPath);
     $fileLister->renderFile($curPath);
->>>>>>> splittingred/develop
     die();
 } elseif (!is_dir($curPath)) {
     /* if an invalid path, set to base */
@@ -207,7 +181,7 @@ foreach (new DirectoryIterator($curPath) as $file) {
     if ($file->isFile() && $showFiles) {
         $fileArray['extension'] = pathinfo($fileArray['path'],PATHINFO_EXTENSION);
         if (!empty($showExt) && !in_array($fileArray['extension'],$showExt)) continue;
-        
+
         $fileArray['lastmod'] = $file->getMTime();
         $fileArray['dateFormat'] = $dateFormat;
 
@@ -221,7 +195,7 @@ foreach (new DirectoryIterator($curPath) as $file) {
 
         $files[] = $fileArray;
         $fileCount++;
-        
+
     /* else if resource is a directory */
     } elseif ($file->isDir() && $showDirectories) {
         $directories[] = $fileArray;
