@@ -235,8 +235,14 @@ class feoHeaders {
         if (isset($this->types[$extension])) {
             $mt = $this->types[$extension];
         }
+<<<<<<< HEAD
         header('Content-type: '.$mt);
     	header('Content-Length: ' . filesize($file));
+=======
+        $fileSize = @filesize($file);
+        if (!empty($mt)) header('Content-type: '.$mt);
+        if (!empty($fileSize)) header('Content-Length: ' . $fileSize);
+>>>>>>> splittingred/develop
         header('Content-Disposition: inline; filename="'.$filename.'"');
     }
 }

@@ -23,15 +23,19 @@
  */
 /**
  * File listing snippet
+ *
+ * @var modX $modx
+ * @var FileLister $fileLister
+ * @var array $scriptProperties
  * 
  * @package filelister
  */
-$filelister = $modx->getService('filelister','FileLister',$modx->getOption('filelister.core_path',null,$modx->getOption('core_path').'components/filelister/').'model/filelister/',$scriptProperties);
-if (!($filelister instanceof FileLister)) return '';
+$fileLister = $modx->getService('filelister','FileLister',$modx->getOption('filelister.core_path',null,$modx->getOption('core_path').'components/filelister/').'model/filelister/',$scriptProperties);
+if (!($fileLister instanceof FileLister)) return '';
 
 /* get path */
 $path = $modx->getOption('path',$scriptProperties,false);
-$filelister->sanitize($path);
+$fileLister->sanitize($path);
 if (empty($path) || !is_dir($path)) return '';
 
 /* setup default properties */
@@ -62,10 +66,10 @@ $lastCls = $modx->getOption('lastCls',$scriptProperties,'feo-last-row');
 $fd = $modx->getOption($navKey,$_REQUEST,false);
 $relPath = '';
 if ($fd) {
-    $relPath = $filelister->parseKey($fd);
+    $relPath = $fileLister->parseKey($fd);
     if ($relPath == '.') $relPath = '';
 }
-$curPath = $filelister->sanitize($path.$relPath);
+$curPath = $fileLister->sanitize($path.$relPath);
 
 /* if pointing to file, output file */
 if (!is_dir($curPath) && is_file($curPath)) {
@@ -83,6 +87,7 @@ if (!is_dir($curPath) && is_file($curPath)) {
             'ip' => $_SERVER['REMOTE_ADDR'],
         ));
 
+        /** @var feoDownload $dl */
         $dl = $modx->newObject('feoDownload');
         $dl->set('path',$curPath);
         $dl->set('ip',$_SERVER['REMOTE_ADDR']);
@@ -92,7 +97,7 @@ if (!is_dir($curPath) && is_file($curPath)) {
 
         $geoApiKey = $modx->getOption('filelister.ipinfodb_api_key',$scriptProperties,'');
         if ($useGeolocation && !empty($geoApiKey)) {
-            $modx->loadClass('geolocation.ipinfodb',$filelister->config['modelPath'],true,true);
+            $modx->loadClass('geolocation.ipinfodb',$fileLister->config['modelPath'],true,true);
             $geo = new ipinfodb($modx);
             $geo->setKey($geoApiKey);
             $locations = $geo->getGeoLocation($_SERVER['REMOTE_ADDR']);
@@ -108,11 +113,12 @@ if (!is_dir($curPath) && is_file($curPath)) {
             if ($modx->user->hasSessionContext($modx->context->get('key'))) {
                 $dl->set('user',$modx->user->get('id'));
             }
-            $dl->save();
         }
+        $dl->save();
 
     }
 
+<<<<<<< HEAD
 
     $filelister->loadHeaders($curPath);
 
@@ -136,6 +142,10 @@ if (!is_dir($curPath) && is_file($curPath)) {
         readfile($abspath);
     } 
 
+=======
+    $fileLister->loadHeaders($curPath);
+    $fileLister->renderFile($curPath);
+>>>>>>> splittingred/develop
     die();
 } elseif (!is_dir($curPath)) {
     /* if an invalid path, set to base */
@@ -163,6 +173,7 @@ $fileCount = 0;
 $totalDownloads = 0;
 $directories = array();
 $files = array();
+/** @var DirectoryIterator $file */
 foreach (new DirectoryIterator($curPath) as $file) {
     if (in_array($file,$skipDirs)) continue;
     if (!$file->isReadable()) continue;
@@ -170,20 +181,20 @@ foreach (new DirectoryIterator($curPath) as $file) {
     /* make the key that is used for navigation */
     $filePath = $file->getPathname();
     $filePath = $relPath.(!empty($relPath) ? '/' : '').$file->getFilename();
-    $key = $filelister->makeKey($filePath);
+    $key = $fileLister->makeKey($filePath);
 
     $fileArray = array();
     $fileArray['filename'] = $file->getFilename();
     $fileArray['bytesize'] = $file->getSize();
-    $fileArray['filesize'] = $filelister->formatBytes($file->getSize());
-    $fileArray['path'] = $file->getPathname();
+    $fileArray['filesize'] = $fileLister->formatBytes($file->getSize());
+    $fileArray['path'] = str_replace('\\', '/', $file->getPathname());
     $fileArray['relativePath'] = $filePath;
     $fileArray['navKey'] = $navKey;
     $fileArray['showDownloads'] = $showDownloads;
 
     /* if allowing for downloading, generate a link here */
     if ($file->isDir() || $canDownload) {
-        $fileArray['link'] = $filelister->getChunk($fileLinkTpl,array(
+        $fileArray['link'] = $fileLister->getChunk($fileLinkTpl,array(
             'url' => $modx->makeUrl($modx->resource->get('id'),'',array(
                 $navKey => $key,
             )),
@@ -224,7 +235,7 @@ unset($fileArray,$file);
 /* do sorting on files */
 $sortBy = $modx->getOption('sortBy',$scriptProperties,'size');
 $sortDir = $modx->getOption('sortDir',$scriptProperties,'ASC');
-include_once $filelister->config['includesPath'].'sort.algorithms.php';
+include_once $fileLister->config['includesPath'].'sort.algorithms.php';
 $algo = '';
 switch ($sortBy.'-'.$sortDir) {
     case 'filename-ASC': case 'name-ASC': $algo = 'feoSortByNameASC'; break;
@@ -248,7 +259,7 @@ foreach ($directories as $directory) {
     $directory['cls'] = $odd ? $altCls : $cls;
     if ($i == 0) $directory['cls'] .= ' '.$firstCls;
     if ($i == ($totalCount-1)) $directory['cls'] .= ' '.$lastCls;
-    $list[] = $filelister->getChunk($directoryTpl,$directory);
+    $list[] = $fileLister->getChunk($directoryTpl,$directory);
     $i++;
 }
 unset($directory);
@@ -257,7 +268,7 @@ foreach ($files as $file) {
     $file['cls'] = $odd ? $altCls : $cls;
     if ($i == 0) $file['cls'] .= ' '.$firstCls;
     if ($i == ($totalCount-1)) $file['cls'] .= ' '.$lastCls;
-    $list[] = $filelister->getChunk($fileTpl,$file);
+    $list[] = $fileLister->getChunk($fileTpl,$file);
     $i++;
 }
 unset($file);
@@ -272,7 +283,7 @@ $placeholders = array(
     'total.files' => $fileCount,
     'total.directories' => $directoryCount,
     'total.downloads' => $totalDownloads,
-    'path' => $filelister->parsePathIntoLinks($relPath,$path,$pathTpl,$pathSeparator,$navKey),
+    'path' => $fileLister->parsePathIntoLinks($relPath,$path,$pathTpl,$pathSeparator,$navKey),
     'relativePath' => $relPath,
 );
 $modx->toPlaceholders($placeholders,$placeholderPrefix);
